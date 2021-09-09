@@ -1,17 +1,51 @@
 {% extends 'base.html' %}
 {% block content %}
 
-  <h1> Survey Title Should Go Here</h1>
-  <p>
-    Survey Instructions Should Go Here
-  </p>
+<h1> {{ title }}</h1>
+<p>
+  {{ instructions }}
+</p>
 
-  <!--
+<!--
     DO NOT CHANGE THE FORM ACTION OR METHOD
     You'll need to write the applicable code to handle this request
    -->
-  <form action="/begin" method="POST">
-    <button>Start!</button>
-  </form>
+
+    <button action="/question/<question_index>">Start!</button>
+  </div>
+</form>
+
 
 {% endblock %}
+
+
+<!-- 
+
+<label for="cars">Choose a car:</label>
+<select id="cars" name="cars">
+  <option value="volvo">Volvo</option>
+  <option value="saab">Saab</option>
+  <option value="fiat">Fiat</option>
+  <option value="audi">Audi</option>
+</select> -->
+
+
+
+<!-- <form action="/begin" method="POST">
+  {% for question in questions %}
+  <div>
+    <label for="{{question.index}}"> {{ question.question }}</label>
+    <select name="{{question.index}}">
+      {% for choice in question.choices %}
+      <option value="{{choice}}">{{ choice }}</option>
+  </div>
+  {% endfor %}
+
+  </select>
+  {% if question.allow_text %}
+  <input type="text" name="{{question.allow_text}}">
+
+  {% endif %}
+
+  {% endfor %}
+  <div> -->
