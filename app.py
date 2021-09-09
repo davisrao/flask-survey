@@ -7,6 +7,8 @@ app.config['SECRET_KEY'] = "never-tell!"
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
+RESPONSES_KEY = "responses"
+
 
 
 # We need to post the answers from the survey questions into the responses list
@@ -14,7 +16,7 @@ debug = DebugToolbarExtension(app)
 @app.get('/')
 def show_survey():
     """ Returns a render template of survey start """
-    return render_template("survey_start.html", 
+    return render_template("survey_start.html", #can pass in survey=survey
                             title=survey.title, 
                             instructions=survey.instructions, 
                             questions=survey.questions)
@@ -22,45 +24,60 @@ def show_survey():
 @app.post("/begin")
 def redirect_to_first_question():
     """ It'll redirect you to the start of the question/0"""
-    session["responses"] = []
+    session[RESPONSES_KEY] = []
     return redirect('/question/0')
 
 
 @app.get("/question/<int:question_index>")
 def show_questions(question_index):
     """ Returns a render template of the question """ 
-    # Scenario where user choose question number that is larger than the number of questions we actually have
-    # user submits question 8 but user has completed all the questions
-    if question_index >= len(session["responses"]) and len(session["responses"]) == len(survey.questions):
-        return redirect('/completion')
-    # user submits question 8 but only has completed 1
-    elif question_index >= len(session["responses"]) and len(session["responses"]) < len(survey.questions):
-        return render_template("question.html", question=survey.questions[len(session["responses"])])
-    else: 
+    responses = session.get(RESPONSES_KEY)
+
+
+    #if they have answered no questions
+    if responses is None:
+        return redirect('/')
+
+    #if they are looking for the question index that matches where they should be in the form
+    elif len(responses) == question_index:
         return render_template("question.html", question=survey.questions[question_index])
+
+    #if they have previously completed and want to enter back in
+    elif len(responses) == len (survey.questions):
+        flash("You have already completed the survey!")
+        return redirect('/completion')
+
+    #if they try to skip questions
+    elif len(responses) < len (survey.questions) and question_index != len(responses):
+        flash("Whoops! That's an invalid question")
+        return render_template("question.html", question=survey.questions[len(session[RESPONSES_KEY])])
+
+    #     # flash("You have already completed the survey!")
+    #     # return redirect('/completion')
+    # elif question_index > len(session[RESPONSES_KEY]) and len(session[RESPONSES_KEY]) < len(survey.questions):
+    #     flash("Whoops! That's an invalid question")
+    #     return render_template("question.html", question=survey.questions[len(session[RESPONSES_KEY])])
+    # else: 
+    #     return render_template("question.html", question=survey.questions[question_index])
     
 
 
 @app.post("/answer")
 def save_answer_to_responses():
+    """takes answer to survey question and stores in session for user responses"""
     answer = request.form["answer"]
     
-    responses = session["responses"]
+    responses = session[RESPONSES_KEY]
     responses.append(answer)
-    session["responses"] = responses
+    session[RESPONSES_KEY] = responses
 
-    # if question index +1 is greater than the total questions we have render complete
-    #otherwise render next question
     if len(responses) == len(survey.questions):
         return redirect('/completion')
-    # if the question number is outside of the range
-
-    # if the questio number is inside of the range but not the next question
-    # ex. if they only answered question 1 but they put 3 in the URL, how do you make them go to question 2
+   
     else:
         return redirect(f"/question/{len(responses)}")
 
 @app.get("/completion")
 def show_form_completion():
-    # session["responses"] = []
+    """shows form completion"""
     return render_template("completion.html")

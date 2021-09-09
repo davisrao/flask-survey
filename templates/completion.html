@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
-  <h1>Thanks for completing this survey!</h1>
+{% for msg in get_flashed_messages() %}
+<p>{{ msg }}</p>
+{% endfor %}
+<h1>Thanks for completing this survey!</h1>
 
 {% endblock %}
