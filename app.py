@@ -20,11 +20,33 @@ def show_survey():
                             questions=survey.questions)
 
 @app.post("/begin")
-def 
-""" It'll redirect you to the start of the question/0"""
+def redirect_to_first_question():
+    """ It'll redirect you to the start of the question/0"""
+    return redirect('/question/0')
 
-@app.get("/question/<question_index>")
+
+@app.get("/question/<int:question_index>")
 def show_questions(question_index):
-    """ Returns a render template of the question """
-    question_index = int(request.args["question_index"])
+    """ Returns a render template of the question """    
+    # question_index = request.args[question_index]
+    # breakpoint()
     return render_template("question.html", question=survey.questions[question_index])
+    
+
+
+@app.post("/answer")
+def save_answer_to_responses():
+    answer = request.form["answer"]
+    responses.append(answer)
+
+    # if question index +1 is greater than the total questions we have render complete
+    #otherwise render next question
+    if len(responses) == len(survey.questions):
+        return redirect('/completion')
+    else:
+        return redirect(f"/question/{len(responses)}")
+
+@app.get("/completion")
+def show_form_completion():
+    responses = []
+    return render_template("completion.html")

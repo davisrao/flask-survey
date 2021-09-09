@@ -62,4 +62,4 @@ personality_quiz = Survey(
 surveys = {
     "satisfaction": satisfaction_survey,
     "personality": personality_quiz,
-}
+}  
