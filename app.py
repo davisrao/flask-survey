@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
-from surveys import satisfaction_survey as survey
+# from surveys import satisfaction_survey as survey, 
+from surveys import surveys
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "never-tell!"
@@ -8,18 +9,35 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
 RESPONSES_KEY = "responses"
+SURVEY_CHOSEN_KEY = "survey_key"
 
 
 
-# We need to post the answers from the survey questions into the responses list
+# On the home page we have some form that allows the user to pick which survey they want to complete
+# Once they hit enter, do show_survey
 
 @app.get('/')
+def show_survey_options():
+    """ Returns a render template of the survey options to choose from """
+    return render_template("survey_options.html", surveys=surveys)
+
+
+@app.post('/start-survey')
 def show_survey():
     """ Returns a render template of survey start """
-    return render_template("survey_start.html", #can pass in survey=survey
-                            title=survey.title, 
-                            instructions=survey.instructions, 
-                            questions=survey.questions)
+    answer = request.form.get("answer")
+    session[SURVEY_CHOSEN_KEY] = answer
+
+    return redirect('/picked-survey')
+
+@app.get('/picked-survey')
+def show_picked_survey():
+    # breakpoint()
+    return render_template("survey_start.html", 
+                            title=surveys[session[SURVEY_CHOSEN_KEY]].title, 
+                            instructions=surveys[session[SURVEY_CHOSEN_KEY]].instructions, 
+                            questions=surveys[session[SURVEY_CHOSEN_KEY]].questions)
+    #can pass in survey=survey
 
 @app.post("/begin")
 def redirect_to_first_question():
@@ -40,17 +58,17 @@ def show_questions(question_index):
 
     #if they are looking for the question index that matches where they should be in the form
     elif len(responses) == question_index:
-        return render_template("question.html", question=survey.questions[question_index])
+        return render_template("question.html", question=surveys[session[SURVEY_CHOSEN_KEY]].questions[question_index])
 
     #if they have previously completed and want to enter back in
-    elif len(responses) == len (survey.questions):
+    elif len(responses) == len (surveys[session[SURVEY_CHOSEN_KEY]].questions):
         flash("You have already completed the survey!")
         return redirect('/completion')
 
     #if they try to skip questions
-    elif len(responses) < len (survey.questions) and question_index != len(responses):
+    elif len(responses) < len (surveys[session[SURVEY_CHOSEN_KEY]].questions) and question_index != len(responses):
         flash("Whoops! That's an invalid question")
-        return render_template("question.html", question=survey.questions[len(session[RESPONSES_KEY])])
+        return render_template("question.html", question=surveys[session[SURVEY_CHOSEN_KEY]].questions[len(session[RESPONSES_KEY])])
 
     #     # flash("You have already completed the survey!")
     #     # return redirect('/completion')
@@ -71,7 +89,7 @@ def save_answer_to_responses():
     responses.append(answer)
     session[RESPONSES_KEY] = responses
 
-    if len(responses) == len(survey.questions):
+    if len(responses) == len(surveys[session[SURVEY_CHOSEN_KEY]].questions):
         return redirect('/completion')
    
     else:

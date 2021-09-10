@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- {% for msg in get_flashed_messages() %}
+<p>{{ msg }}</p>
+{% endfor %} -->
+
+<h1>Choose a Survey</h1>
+
+<form action="/start-survey" method="POST">
+
+
+  <!-- you should have one item like this for every choice -->
+
+  <div>
+    <select name="answer">
+      {% for name in surveys.keys() %}
+      <option value="{{ name }}">
+        {{ name }}
+        {% endfor %}
+    </select>
+  </div>
+
+  <button>Continue</button>
+</form>
+
+{% endblock %}
+
+
+
+<!-- <form action="/begin" method="POST">
+  {% for question in questions %}
+  <div>
+    <label for="{{question.index}}"> {{ question.question }}</label>
+    <select name="{{question.index}}">
+      {% for choice in question.choices %}
+      <option value="{{choice}}">{{ choice }}</option>
+  </div>
+  {% endfor %}
+
+  </select>
+  {% if question.allow_text %}
+  <input type="text" name="{{question.allow_text}}">
+
+  {% endif %}
+
+  {% endfor %}
+  <div> -->
